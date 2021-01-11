@@ -84,7 +84,7 @@ class DrawPlotByTS():
         exp_return=(price.iloc[-1]**(data_period/price.shape[0])-1.0) #imply that price[0]=1
         std=ret.std()*m.sqrt(data_period)
         sharpe=exp_return/std
-        max_drawdown=pd.DataFrame(self.calculate_drawdown(price)).min().iloc[0]
+        max_drawdown=pd.DataFrame(self.CalculateDrawdown(price)).min().iloc[0]
         return_dd_ratio = -exp_return/max_drawdown
         outputs = [exp_return,std,sharpe,max_drawdown,return_dd_ratio]
         outputs_str = []
@@ -101,7 +101,7 @@ class DrawPlotByTS():
         exp_return=(price.iloc[-1]**(data_period/price.shape[0])-1.0) #imply that price[0]=1
         std=ret.std()*m.sqrt(data_period)
         sharpe=exp_return/std
-        max_drawdown=pd.DataFrame(self.calculate_drawdown(price)).min().iloc[0]
+        max_drawdown=pd.DataFrame(self.CalculateDrawdown(price)).min().iloc[0]
         return_dd_ratio = -exp_return/max_drawdown
         outputs = [exp_return,std,sharpe,max_drawdown,return_dd_ratio]
         return outputs
@@ -1012,7 +1012,7 @@ class Backtest(BacktestData,Operators,DrawPlotByTS):
                     print('Benchmark:')
                 interval_ret = ret.iloc[i:i+interval_length]
                 interval_path = self.Compound(interval_ret,False)
-                cbi = self.calculate_basic_information(interval_path,interval_ret,period_in_year)
+                cbi = self.CalculateBasicInformation(interval_path,interval_ret,period_in_year)
                 print(cbi)
 
     def StatOfEachBet(self):
