@@ -19,7 +19,7 @@ class DrawPlotByTS():
         print('Initializing DrawPlotByTS...')
         print('Sucessfully Initializing DrawPlotByTS')
     
-    def plot_log_picture(self,dfname,period,*input_return): #list,single_df
+    def PlotLogPicture(self,dfname,period,*input_return): #list,single_df
         fig = plt.figure(figsize=(15,3))
         plt.title("price")
         plt.yscale("log")
@@ -30,22 +30,22 @@ class DrawPlotByTS():
         time=input_return[0].index
         for i,single in enumerate(input_return):
             cumulate=single.cumprod()
-            drawdown=self.calculate_drawdown(cumulate)
-            [a,b,c,d]=self.calculate_basic_information(cumulate,single,period)[0:4]
+            drawdown=self.CalculateDrawdown(cumulate)
+            [a,b,c,d]=self.CalculateBasicInformation(cumulate,single,period)[0:4]
             table_vals.append([a,b,c,d])
             plt.plot(time,cumulate,label=dfname[i])
         plt.legend()
         plt.table(cellText=table_vals,rowLabels=row_labels,colLabels=col_labels,loc='lower right',colWidths = [0.15]*4)
         plt.show()
         
-    def plot_drawdown(self,dfname,*cumulate): #list,cumulate_df
+    def PlotDrawdown(self,dfname,*cumulate): #list,cumulate_df
         input_len=len(cumulate)
         time=cumulate[0].index
         drawdown_combine=[]
         for i,cumulate_each in enumerate(cumulate):
             plt.figure(figsize=(15,3))
             plt.title(dfname[i])
-            drawdown_combine.append(self.calculate_drawdown(cumulate_each))
+            drawdown_combine.append(self.CalculateDrawdown(cumulate_each))
             plt.fill_between(time,0,drawdown_combine[-1],facecolor='red')
             plt.ylim(top = 0, bottom = -0.6)
             plt.show()
@@ -63,7 +63,7 @@ class DrawPlotByTS():
             plt.ylim(top = 0, bottom = -0.6)
             plt.legend(loc='lower right')
             plt.show()
-    def calculate_drawdown(self,price):
+    def CalculateDrawdown(self,price):
         drawdown=0
         x=1
         for i in range(1,len(price)):
@@ -78,7 +78,7 @@ class DrawPlotByTS():
     def TwoDigits(self,input_float):
         return ('%s'%  (np.round(input_float,2)))
     
-    def calculate_basic_information(self,price,ret,data_period):
+    def CalculateBasicInformation(self,price,ret,data_period):
         data_period=float(data_period)
         print(price.iloc[-1],data_period,price.shape[0])
         exp_return=(price.iloc[-1]**(data_period/price.shape[0])-1.0) #imply that price[0]=1
@@ -95,7 +95,7 @@ class DrawPlotByTS():
                 outputs_str.append(self.TwoDigits(o))
         return outputs_str
 
-    def calculate_basic_information_fast(self,price,ret,data_period):
+    def CalculateBasicInformationFast(self,price,ret,data_period):
         data_period=float(data_period)
         #print(price.iloc[-1],data_period,price.shape[0])
         exp_return=(price.iloc[-1]**(data_period/price.shape[0])-1.0) #imply that price[0]=1
