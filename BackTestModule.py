@@ -897,18 +897,18 @@ class Backtest(BacktestData,Operators,DrawPlotByTS):
         #print(len(self.path_str),len(self.path_bm))
         
     def ExportPlot(self):
-        self.plot_log_picture(["allocation","benchmark"],self.piy,self.single_str['sum'],self.single_bm['bm']) #label,1年有幾期,單一日報酬df
-        self.plot_drawdown(["allocation","benchmark"],self.path_str['sum'],self.path_bm['bm']) #label,累積日報酬df
+        self.PlotLogPicture(["allocation","benchmark"],self.piy,self.single_str['sum'],self.single_bm['bm']) #label,1年有幾期,單一日報酬df
+        self.PlotDrawdown(["allocation","benchmark"],self.path_str['sum'],self.path_bm['bm']) #label,累積日報酬df
         
     def GetBasicInf(self):
         self.Winrate()
         self.Turnover()
-        self.cbi = self.calculate_basic_information(self.path_str['sum'],self.single_str['sum'],self.piy)
+        self.cbi = self.CalculateBasicInformation(self.path_str['sum'],self.single_str['sum'],self.piy)
         self.gbi_dict = {'Ret':self.cbi[0],'Std':self.cbi[1],'Sharpe':self.cbi[2],'DD':self.cbi[3],'RtoDD':self.cbi[4]}
         return self.gbi_dict
 
     def GetBasicInf_fast(self):
-        self.cbi = self.calculate_basic_information_fast(self.path_str['sum'],self.single_str['sum'],self.piy)
+        self.cbi = self.CalculateBasicInformationFast(self.path_str['sum'],self.single_str['sum'],self.piy)
         self.gbi_dict = {'Ret':self.cbi[0],'Std':self.cbi[1],'Sharpe':self.cbi[2],'DD':self.cbi[3],'RtoDD':self.cbi[4]}
         return self.gbi_dict
     
