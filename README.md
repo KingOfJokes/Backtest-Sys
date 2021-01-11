@@ -13,7 +13,7 @@ The following are steps to install our system:
 
 5. Edit the path you locate "BackTestModule.py" in first cell of ipynb
 
-6. Let's go backtesting! you will find that buy with the pace of foreigner is obviouly not a good idea.
+6. Let's go backtesting! you will find that buy with the pace of foreigner is obviously not a good idea.
 
 
 Note: 
