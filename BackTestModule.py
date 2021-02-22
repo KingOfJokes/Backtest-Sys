@@ -23,7 +23,7 @@ class DrawPlotByTS():
         fig = plt.figure(figsize=(15,3))
         plt.title("price")
         plt.yscale("log")
-        col_labels=['return','std','sharp','max_drawdown']
+        col_labels=['return','std','sharpe','max_drawdown']
         row_labels=dfname
         table_vals=[]
         input_len=len(input_return)
@@ -470,7 +470,7 @@ class Operators(Activate):
         res = self.TransNPtoOriDF(res,df)
         return res
 
-    def SignStreak(self,df):
+    def SignStreak(self,df,zero_continue=True):
         array = self.TransDFtoNP(df)
         res = np.full_like(array,np.nan)
         res[0,:] = np.sign(array[0,:])
@@ -482,7 +482,10 @@ class Operators(Activate):
                 elif array[i,j]*last_sign < 0:
                     res[i,j] = -last_sign
                 elif array[i,j]*last_sign == 0:
-                    res[i,j] = res[i-1,j]
+                    if zero_continue == True:
+                        res[i,j] = res[i-1,j]
+                    else:
+                        res[i,j] = np.sign(array[i,j])
         res = self.TransNPtoOriDF(res,df)
         return res
     
@@ -563,7 +566,7 @@ class Operators(Activate):
         ori_index,ori_col = ori_df.index,ori_df.columns
         target_index,target_col = target_df.index,target_df.columns
         if target_col.equals(ori_col) == False:
-            print('Columns not match')
+            print('Notice: Columns are different')
             ori_df = self.TrimColumns(ori_df,target_df)
 
         if target_index.equals(ori_index) == True:
@@ -589,12 +592,12 @@ class Operators(Activate):
                 for k in range(current_seat,len(ori_index)):
                     #print(tar_d,ori_index[k])
                     if tar_d == ori_index[k]:
-                        print(tar_d,ori_index[k])
+                        #print(tar_d,ori_index[k])
                         current_seat = k-1
                         result_np[i,:] = ori_np[k,:]
                         break  
                     elif tar_d < ori_index[k]:
-                        print(tar_d,ori_index[k])
+                        #print(tar_d,ori_index[k])
                         current_seat = k-1
                         result_np[i,:] = ori_np[k-1,:]
                         break         
@@ -612,14 +615,21 @@ class Operators(Activate):
         for i in range(2,len(candidate)):
             res = np.minimum(res,candidate[i])
         return res
+
+    def RisedaysRatio(self,df,period):  
+        rise = self.TransNPtoOriDF(np.where(df>0,1,0),df)   
+        dip = self.TransNPtoOriDF(np.where(df<0,1,0),df)    
+        period_rise = self.ColumnSum(rise,period)   
+        period_dip = self.ColumnSum(dip,period) 
+        return period_rise/(period_rise+period_dip) 
         
         
 class BacktestData(Operators,DrawPlotByTS):
     database={}
     def __init__(self):
         print('Initializing BacktestData...')
-        self.path = 'C://StockDB/data/'
-        self.cpath = 'C://StockDB/cache/'
+        self.path = 'D://Apollo/data/'
+        self.cpath = 'D://Apollo/cache/'
         print(self.path)
         self.ImportData('ret')
         self.CheckRet('ret')
@@ -636,6 +646,7 @@ class BacktestData(Operators,DrawPlotByTS):
             if decision == 'Y' or decision == 'y':
                 self.database[ret_df_name] *= 0.01
                 self.ExportData(ret_df_name)
+        self.tickers = list(self.database['ret'].columns)
 
     def Import(self,df_name,folder_url,encoder):
         file_name = df_name+'.csv'
@@ -651,26 +662,31 @@ class BacktestData(Operators,DrawPlotByTS):
                 return 0
         self.database[df_name]=pd.read_csv(folder_url+file_name,index_col=0,parse_dates=True,encoding=encoder)
     
-    def ImportData(self,_df_name,_encoder='cp950'):
-        self.Import(df_name=_df_name,folder_url=self.path,encoder=_encoder)
+    def ImportData(self,_df_name):
+        try:
+            self.Import(df_name=_df_name,folder_url=self.path,encoder='cp950')
+        except:
+            self.Import(df_name=_df_name,folder_url=self.path,encoder='utf-8')
     
-    def ImportCache(self,_df_name,_encoder='cp950'):
-        self.Import(df_name=_df_name,folder_url=self.cpath,encoder=_encoder)
+    def ImportCache(self,_df_name):
+        try:
+            self.Import(df_name=_df_name,folder_url=self.cpath,encoder='cp950')
+        except:
+            self.Import(df_name=_df_name,folder_url=self.cpath,encoder='utf-8')
     
     def AddData(self,df,df_name):
         self.database[df_name] = df
+
+    def ExportData(self,_df_name,_encoder='cp950'):
+        self.Export(df_name=_df_name,folder_url=self.path,encoder=_encoder)
+
+    def ExportCache(self,_df_name,_encoder='cp950'):
+        self.Export(df_name=_df_name,folder_url=self.cpath,encoder=_encoder)
     
-    def ExportData(self,df_name,encoder='cp950'):
-        existing_files = os.listdir(self.cpath)
+    def Export(self,df_name,folder_url,encoder):
+        existing_files = os.listdir(folder_url)
         file_name = df_name+'.csv'
-        if file_name not in existing_files:
-            self.database[df_name].to_csv(self.cpath+file_name,encoding=encoder)
-        else:
-            yes_or_no = 'Y'#input("Want to overwrite existing data?(Y/N)")
-            if yes_or_no == 'Y' or yes_or_no == 'y':
-                self.database[df_name].to_csv(self.cpath+file_name,encoding=encoder)
-            else:
-                self.database[df_name].to_csv(self.cpath+df_name+'(2).csv',encoding=encoder)
+        self.database[df_name].to_csv(folder_url+file_name,encoding=encoder)
                 
     def ShowDFList(self):
         df_key = list(self.database.keys())
@@ -924,6 +940,10 @@ class Backtest(BacktestData,Operators,DrawPlotByTS):
             self.finish = self.GetBasicInf_fast()
             #print(np.round(self.finish['Sharpe'],4))
         
+    def CorrwithBM(self):   
+        value = np.round(np.corrcoef(self.single_bm.values.flatten(),self.single_str.values.flatten())[0,1],4)  
+        return value
+
     def RetDistribution(self,bins=25):
         strategy_ret = self.single_str.values
         plt.hist(strategy_ret,bins)
